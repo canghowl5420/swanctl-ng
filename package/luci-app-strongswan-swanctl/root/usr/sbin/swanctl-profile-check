@@ -1,0 +1,81 @@
+#!/bin/sh
+# Check that the installed strongSwan profile provides the pieces the LuCI
+# application needs. This is deliberately dependency-light: it only looks at
+# files, so it works before charon has ever been started.
+#
+# Usage: swanctl-profile-check [default|full|minimal]
+#
+# Exit 0 when everything required by the profile is present, 1 otherwise.
+
+PROFILE="${1:-}"
+[ -n "$PROFILE" ] || PROFILE="$(cat /etc/swanctl.profile 2>/dev/null)"
+[ -n "$PROFILE" ] || PROFILE="unknown"
+
+missing=""
+
+add_missing() {
+	case " $missing " in
+		*" $1 "*) ;;
+		*) missing="$missing $1" ;;
+	esac
+}
+
+check_file() {
+	[ -e "$1" ] || add_missing "$2"
+}
+
+check_exec() {
+	[ -x "$1" ] || add_missing "$2"
+}
+
+# Base runtime and the UCI/init integration.
+check_exec /usr/lib/ipsec/charon strongswan-charon
+check_exec /usr/sbin/swanctl strongswan-swanctl
+check_exec /etc/init.d/swanctl strongswan-swanctl
+check_file /etc/config/ipsec strongswan-swanctl
+
+# VICI is the management channel used by swanctl and swanmon.
+check_file /usr/lib/ipsec/plugins/libstrongswan-vici.so strongswan-mod-vici
+
+# Kernel and socket backends.
+check_file /usr/lib/ipsec/plugins/libstrongswan-kernel-netlink.so strongswan-mod-kernel-netlink
+check_file /usr/lib/ipsec/plugins/libstrongswan-socket-default.so strongswan-mod-socket-default
+
+# Certificate/key handling used by the UI.
+check_file /usr/lib/ipsec/plugins/libstrongswan-x509.so strongswan-mod-x509
+check_file /usr/lib/ipsec/plugins/libstrongswan-pem.so strongswan-mod-pem
+check_file /usr/lib/ipsec/plugins/libstrongswan-pubkey.so strongswan-mod-pubkey
+check_file /usr/lib/ipsec/plugins/libstrongswan-pkcs1.so strongswan-mod-pkcs1
+check_file /usr/lib/ipsec/plugins/libstrongswan-pkcs8.so strongswan-mod-pkcs8
+
+# IKE/ESP building blocks. The default and minimal profiles both need these.
+check_file /usr/lib/ipsec/plugins/libstrongswan-random.so strongswan-mod-random
+check_file /usr/lib/ipsec/plugins/libstrongswan-aes.so strongswan-mod-aes
+check_file /usr/lib/ipsec/plugins/libstrongswan-sha2.so strongswan-mod-sha2
+check_file /usr/lib/ipsec/plugins/libstrongswan-hmac.so strongswan-mod-hmac
+check_file /usr/lib/ipsec/plugins/libstrongswan-gmp.so strongswan-mod-gmp
+check_file /usr/lib/ipsec/plugins/libstrongswan-mgf1.so strongswan-mod-mgf1
+check_file /usr/lib/ipsec/plugins/libstrongswan-kdf.so strongswan-mod-kdf
+check_file /usr/lib/ipsec/plugins/libstrongswan-gcm.so strongswan-mod-gcm
+
+# Pools / virtual IPs (road-warrior server mode).
+check_file /usr/lib/ipsec/plugins/libstrongswan-attr.so strongswan-mod-attr
+
+# Route installation on Linux.
+check_file /usr/lib/ipsec/plugins/libstrongswan-updown.so strongswan-mod-updown
+
+# swanmon is optional: the minimal profile uses the text fallback instead.
+case "$PROFILE" in
+	default|full)
+		check_exec /usr/sbin/swanmon swanmon
+		;;
+esac
+
+if [ -n "$missing" ]; then
+	echo "strongSwan profile '$PROFILE' is incomplete; missing:$missing" >&2
+	echo "Reinstall the profile package or install the missing packages with your package manager." >&2
+	exit 1
+fi
+
+echo "strongSwan profile '$PROFILE' is complete."
+exit 0

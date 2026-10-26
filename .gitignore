@@ -1,0 +1,14 @@
+# Read-only upstream snapshots
+/upstream/
+
+# Build artifacts and extracted SDKs
+/build/
+*.ipk
+*.apk
+*.tar.zst
+*.tar.gz
+
+# Editor and OS noise
+.DS_Store
+*.swp
+*~
