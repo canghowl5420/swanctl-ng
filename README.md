@@ -109,13 +109,15 @@ SDK_DIR=/path/to/sdk ./scripts/build.sh
 ## 安装（full）
 
 ```sh
-scp /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-full-1.0.0-r1.apk \
+scp /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-1.0.0-r1.apk \
+    /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-full-1.0.0-r1.apk \
     root@<router>:/tmp/
 
 ssh root@<router> '
   cp /etc/config/ipsec /root/ipsec.bak.$(date +%s)
   apk update
   apk del luci-app-strongswan-swanctl-full luci-app-strongswan-swanctl 2>/dev/null || true
+  apk add --allow-untrusted /tmp/luci-app-strongswan-swanctl-1.0.0-r1.apk
   apk add --allow-untrusted /tmp/luci-app-strongswan-swanctl-full-1.0.0-r1.apk
   /etc/init.d/rpcd restart
   /etc/init.d/uhttpd restart
@@ -142,7 +144,7 @@ cp /root/ipsec.bak /etc/config/ipsec
 - [x] 导入 ImmortalWrt 源码
 - [x] 四包结构 + strongswan/xfrm/luci-proto-xfrm 依赖
 - [x] 五个页面和文件管理 RPC
-- [x] 中文翻译资源和中文文档
+- [x] 中文文档和基础翻译资源
 - [x] aarch64 SDK 构建通过（构建期依赖使用 stub）
 - [ ] 真机安装与现有隧道回归
 - [ ] 更细的配置语法校验/证书管理
