@@ -1,93 +1,95 @@
 # immortalwrt-swanctl
 
-A working fork of `luci-app-strongswan-swanctl` for **ImmortalWrt master**
-(kernel 6.18.x, aarch64), with explicit strongSwan installation profiles.
+面向 **ImmortalWrt master（内核 6.18.x，aarch64）** 的
+`luci-app-strongswan-swanctl` 重写项目。
 
-The project is intentionally split into:
+本项目不再是原来的 UCI 表单编辑器，而是围绕 `/etc/swanctl` 配置文件工作：
 
-- a **UI core** package, which contains the LuCI application;
-- three **mutually exclusive profile** packages (default / full / minimal),
-  which pull in the correct strongSwan components.
+- 一个 UI 核心包；
+- 三个互斥的 strongSwan 安装 profile（default / full / minimal）；
+- 五个 Web 页面：状态、配置文件、生成配置、编辑器、日志；
+- 安装时补齐 `strongswan`、`strongswan-charon`、`strongswan-swanctl`、
+  `xfrm`、`luci-proto-xfrm` 等依赖。
 
-The upstream LuCI app only depends on `strongswan-swanctl` and `swanmon`.
-`strongswan-swanctl` does **not** contain the charon daemon, so a fresh install
-can show the UI while having no working strongSwan service. This project fixes
-that by making the user choose a profile at install time.
+## 目标环境
 
-## Target
+- 固件：ImmortalWrt master snapshot
+- 内核：6.18.55
+- 架构：aarch64
+- 包管理器：apk
+- LuCI：ImmortalWrt master
 
-- Firmware: ImmortalWrt master snapshot
-- Kernel: 6.18.55
-- Architecture: aarch64
-- Package manager: apk (OpenWrt 25.12 / ImmortalWrt snapshot)
-- LuCI: ImmortalWrt master
+包本身是 `PKGARCH=all`，但构建时仍建议使用与路由器同代的 SDK。
 
-The package is pure JS/ucode and is built as `PKGARCH=all`, but it must be
-built with an SDK matching the firmware generation so that the dependency
-metadata and LuCI build helpers match.
+## 源码地址
 
-## Upstream source addresses
-
-| Component | URL | Path |
+| 组件 | 地址 | 路径 |
 |---|---|---|
-| ImmortalWrt main | https://github.com/immortalwrt/immortalwrt | branch `master` |
+| ImmortalWrt 主源码 | https://github.com/immortalwrt/immortalwrt | 分支 `master` |
 | ImmortalWrt LuCI | https://github.com/immortalwrt/luci | `applications/luci-app-strongswan-swanctl` |
-| ImmortalWrt packages | https://github.com/immortalwrt/packages | `net/strongswan`, `utils/swanmon` |
-| OpenWrt LuCI (newer reference) | https://github.com/openwrt/luci | `applications/luci-app-strongswan-swanctl` |
-| OpenWrt packages | https://github.com/openwrt/packages | `net/strongswan` |
-| swanmon | https://github.com/TDT-AG/swanmon | upstream tool used by the status view |
-| strongSwan | https://github.com/strongswan/strongswan | upstream daemon source |
-| strongSwan downloads | https://download.strongswan.org/ | release tarballs |
+| ImmortalWrt packages | https://github.com/immortalwrt/packages | `net/strongswan`、`utils/swanmon` |
+| OpenWrt LuCI 参考 | https://github.com/openwrt/luci | `applications/luci-app-strongswan-swanctl` |
+| OpenWrt packages 参考 | https://github.com/openwrt/packages | `net/strongswan` |
+| swanmon 上游 | https://github.com/TDT-AG/swanmon | 状态查询工具 |
+| strongSwan 上游 | https://github.com/strongswan/strongswan | 守护进程源码 |
+| strongSwan 下载 | https://download.strongswan.org/ | 发布 tarball |
 
-Pinned commits used for the initial import are in `SOURCES.md`.
+本次导入的固定提交记录在 [SOURCES.md](SOURCES.md)。
 
-## Layout
+## 目录
 
 ```
 immortalwrt-swanctl/
-├── package/luci-app-strongswan-swanctl/   # working package (tracked)
+├── package/luci-app-strongswan-swanctl/   # 实际构建的包
 │   ├── Makefile
-│   ├── htdocs/...
-│   ├── root/usr/sbin/swanctl-profile-check
+│   ├── htdocs/...                         # 五个页面 + api.js
+│   ├── root/...                           # 菜单、ACL、ucode RPC、profile 检查
 │   └── po/...
-├── upstream/                              # read-only source snapshots (ignored)
-│   ├── luci/...
-│   └── packages/...
-├── docs/
-├── scripts/
-└── build/                                 # build output (ignored)
+├── upstream/                              # 只读上游快照（不跟踪）
+├── docs/                                  # 中文设计/构建/页面文档
+├── scripts/build.sh
+└── build/out/                             # 构建产物（不跟踪）
 ```
 
-## Profiles
+## 五个页面
 
-| Package | strongSwan base | Extra packages | Status view |
-|---|---|---|---|
-| `luci-app-strongswan-swanctl` | `strongswan-swanctl` only | UI core, no charon | depends on profile |
-| `...-default` | `strongswan-default` | gcm, chapoly, curve25519, pkcs8, pkcs12, sha3, swanmon | structured |
-| `...-full` | `strongswan-full` | swanmon | structured |
-| `...-minimal` | `strongswan-minimal` | vici, attr, pem, pkcs1, pkcs8, sha2, kdf, gcm | text fallback, no swanmon |
+1. **IPsec Status**：服务启停/重启/重载、当前配置、版本、uptime、
+   IKE SA、插件列表、连接状态。
+2. **Configuration Files**：列出/启用/编辑/删除配置，上传 `.conf`，
+   处理其他 `conf.d` 文件。
+3. **Generate Configuration**：表单生成 `swanctl.conf` 片段，支持
+   IKEv1/IKEv2、PSK/证书、流量选择器、proposal、start_action。
+4. **Editor**：直接编辑 profile 文本，保存/保存并启用/从磁盘重读。
+5. **Logs**：查看 `charon` 和 `swanctl` 运行日志，支持自动刷新。
 
-Install **exactly one** of the three profile packages. Each profile has a
-`preinst` guard that refuses to install while another profile marker exists;
-the UI core is installed automatically as a dependency. Remove the current
-profile before switching.
+原来的“状态 → strongSwan IPsec”菜单已经删除。
 
-> `swanmon` depends on `davici` and `glib2` (about 3.2 MB installed on
-> 24.10). The minimal profile deliberately avoids it.
+## 安装 profile
 
-## Build
+| 包 | strongSwan 依赖 | 说明 |
+|---|---|---|
+| `luci-app-strongswan-swanctl` | core：`strongswan`、`strongswan-charon`、`strongswan-swanctl`、`strongswan-mod-vici`、`xfrm`、`luci-proto-xfrm` | UI 核心，装任意 profile 时自动安装 |
+| `...-default` | `strongswan-default` + gcm/chapoly/curve25519/pkcs8/pkcs12/sha3 + swanmon | 体积/功能平衡 |
+| `...-full` | `strongswan-full` + swanmon | 默认安装，功能最全 |
+| `...-minimal` | `strongswan-minimal` + vici/attr/pem/pkcs1/pkcs8/sha2/kdf/gcm | 小闪存，不装 swanmon |
 
-Download the ImmortalWrt SDK for the target (for a generic aarch64 test build,
-the `armsr/armv8` SDK works; for the router use the SDK matching its target):
+三个 profile 有 `preinst` 互斥保护：已装一个时，装另一个会被拒绝，需要先
+`apk del` 当前 profile 再装新的。
+
+> `swanmon` 会依赖 `davici`/`glib2`（约 3.2 MB），所以 minimal 不装它。
+> minimal 的状态页会降级为 `swanctl --stats` 文本。
+
+## 构建
+
+下载与路由器同代的 ImmortalWrt SDK（示例为 armsr/armv8，aarch64）：
 
 ```sh
-# Example; replace with the SDK matching the router target and snapshot.
 wget https://downloads.immortalwrt.org/snapshots/targets/armsr/armv8/immortalwrt-sdk-armsr-armv8_gcc-14.4.0_musl.Linux-x86_64.tar.zst
 tar --zstd -xf immortalwrt-sdk-*.tar.zst
 cd immortalwrt-sdk-*
 ```
 
-Link this package into the SDK and build:
+把包链接进 SDK 并编译：
 
 ```sh
 ln -s /root/DeepSeek/immortalwrt-swanctl/package/luci-app-strongswan-swanctl \
@@ -96,40 +98,34 @@ make defconfig
 make package/luci-app-strongswan-swanctl/compile V=s -j$(nproc)
 ```
 
-The core target builds all four packages in the directory. The output is
-under `bin/packages/<arch>/base/` (or `luci/` depending on the feed layout).
-All packages are `PKGARCH=all`; the profile meta packages still carry
-target-independent metadata.
+核心目标会一次构建四个包。产物在 `bin/packages/<arch>/base/`。
 
-### Build helper
-
-`scripts/build.sh` wraps the above and copies artifacts into `build/out`.
-
-## Install (apk)
+构建辅助脚本：
 
 ```sh
-# Remove the old app package first; keep the configuration and certificates.
-apk del luci-app-strongswan-swanctl 2>/dev/null || true
-
-# Choose ONE profile. full is the requested default.
-apk add --allow-untrusted /tmp/luci-app-strongswan-swanctl-full_*.apk
-
-# Refresh LuCI/rpcd caches.
-/etc/init.d/rpcd restart
-/etc/init.d/uhttpd restart
+SDK_DIR=/path/to/sdk ./scripts/build.sh
 ```
 
-Verify:
+## 安装（full）
 
 ```sh
-/usr/sbin/swanctl-profile-check full
-/etc/init.d/swanctl status
-/usr/sbin/swanctl --list-conns
+scp /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-full-1.0.0-r1.apk \
+    root@<router>:/tmp/
+
+ssh root@<router> '
+  cp /etc/config/ipsec /root/ipsec.bak.$(date +%s)
+  apk update
+  apk del luci-app-strongswan-swanctl-full luci-app-strongswan-swanctl 2>/dev/null || true
+  apk add --allow-untrusted /tmp/luci-app-strongswan-swanctl-full-1.0.0-r1.apk
+  /etc/init.d/rpcd restart
+  /etc/init.d/uhttpd restart
+  /usr/sbin/swanctl-profile-check full
+'
 ```
 
-## Rollback
+## 回滚
 
-Keep the old `.apk` and a copy of `/etc/config/ipsec`:
+保留旧包和 `/etc/config/ipsec`：
 
 ```sh
 cp /etc/config/ipsec /root/ipsec.bak
@@ -139,14 +135,14 @@ cp /root/ipsec.bak /etc/config/ipsec
 /etc/init.d/swanctl restart
 ```
 
-Never do this over the IPsec tunnel you are editing; use LAN or out-of-band
-access.
+不要在正在使用的 IPsec 隧道内做重启 charon 的操作，使用 LAN 或带外管理。
 
-## Status
+## 当前状态
 
-- [x] Import ImmortalWrt source snapshot
-- [x] Add profile packages and dependency checker
-- [x] Add Chinese translation and profile status banner
-- [x] Compile all four packages in an aarch64 SDK (build-time dependency stubs used for the SDK test)
-- [ ] Port the newer LuCI views / finish the UI rewrite
-- [ ] Install on the router and verify existing tunnels
+- [x] 导入 ImmortalWrt 源码
+- [x] 四包结构 + strongswan/xfrm/luci-proto-xfrm 依赖
+- [x] 五个页面和文件管理 RPC
+- [x] 中文翻译资源和中文文档
+- [x] aarch64 SDK 构建通过（构建期依赖使用 stub）
+- [ ] 真机安装与现有隧道回归
+- [ ] 更细的配置语法校验/证书管理

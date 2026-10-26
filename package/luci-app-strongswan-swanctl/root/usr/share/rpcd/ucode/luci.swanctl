@@ -2,470 +2,414 @@
 
 'use strict';
 
+import { chmod, lsdir, mkdir, readfile, rename, stat, unlink, writefile } from 'fs';
 import { popen } from 'fs';
 
-const encryption_map = {
-	'3DES_CBC': [
-		{ name: '3des', insecure: true }
-	],
-	'AES_CBC': [
-		{ name: 'aes', insecure: false },
-		{ name: 'aes128', insecure: false },
-		{ name: 'aes192', insecure: false },
-		{ name: 'aes256', insecure: false }
-	],
-	'AES_CTR': [
-		{ name: 'aes128ctr', insecure: false },
-		{ name: 'aes192ctr', insecure: false },
-		{ name: 'aes256ctr', insecure: false }
-	],
-	'BLOWFISH_CBC': [
-		{ name: 'blowfish', insecure: true },
-		{ name: 'blowfish128', insecure: true },
-		{ name: 'blowfish192', insecure: true },
-		{ name: 'blowfish256', insecure: true }
-	],
-	'CAMELLIA_CBC': [
-		{ name: 'camellia', insecure: false },
-		{ name: 'camellia128', insecure: false },
-		{ name: 'camellia192', insecure: false },
-		{ name: 'camellia256', insecure: false }
-	],
-	'CAMELLIA_CTR': [
-		{ name: 'camellia128ctr', insecure: false },
-		{ name: 'camellia192ctr', insecure: false },
-		{ name: 'camellia256ctr', insecure: false }
-	],
-	'CAST_CBC': [
-		{ name: 'cast128', insecure: true }
-	],
-	'DES_CBC': [
-		{ name: 'des', insecure: true }
-	],
-	'NULL': [
-		{ name: 'null', insecure: true }
-	],
-	'NULL_AES_GMAC': [
-		{ name: 'aes128gmac', insecure: false },
-		{ name: 'aes192gmac', insecure: false },
-		{ name: 'aes256gmac', insecure: false }
-	],
-	'SERPENT_CBC': [
-		{ name: 'serpent', insecure: false },
-		{ name: 'serpent128', insecure: false },
-		{ name: 'serpent192', insecure: false },
-		{ name: 'serpent256', insecure: false }
-	],
-	'TWOFISH_CBC': [
-		{ name: 'twofish', insecure: false },
-		{ name: 'twofish128', insecure: false },
-		{ name: 'twofish192', insecure: false },
-		{ name: 'twofish256', insecure: false }
-	]
-};
+const PROFILE_DIR = '/etc/swanctl/profiles';
+const CONF_DIR = '/etc/swanctl/conf.d';
+const DISABLED_DIR = '/etc/swanctl/conf.d.disabled';
+const ACTIVE_FILE = '/etc/swanctl/conf.d/active.conf';
+const ACTIVE_MARKER = '/etc/swanctl/active_profile';
+const MAX_CONTENT = 256 * 1024;
 
-const aead_map = {
-	'AES_CCM_8': [
-		{ name: 'aes128ccm8', insecure: false },
-		{ name: 'aes128ccm64', insecure: false },
-		{ name: 'aes192ccm8', insecure: false },
-		{ name: 'aes192ccm64', insecure: false },
-		{ name: 'aes256ccm8', insecure: false },
-		{ name: 'aes256ccm64', insecure: false }
-	],
-	'AES_CCM_12': [
-		{ name: 'aes128ccm12', insecure: false },
-		{ name: 'aes128ccm96', insecure: false },
-		{ name: 'aes192ccm12', insecure: false },
-		{ name: 'aes192ccm96', insecure: false },
-		{ name: 'aes256ccm12', insecure: false },
-		{ name: 'aes256ccm96', insecure: false }
-	],
-	'AES_CCM_16': [
-		{ name: 'aes128ccm16', insecure: false },
-		{ name: 'aes128ccm128', insecure: false },
-		{ name: 'aes128ccm', insecure: false },
-		{ name: 'aes192ccm16', insecure: false },
-		{ name: 'aes192ccm128', insecure: false },
-		{ name: 'aes192ccm', insecure: false },
-		{ name: 'aes256ccm16', insecure: false },
-		{ name: 'aes256ccm128', insecure: false },
-		{ name: 'aes256ccm', insecure: false }
-	],
-	'AES_GCM_12': [
-		{ name: 'aes128gcm12', insecure: false },
-		{ name: 'aes128gcm96', insecure: false },
-		{ name: 'aes192gcm12', insecure: false },
-		{ name: 'aes192gcm96', insecure: false },
-		{ name: 'aes256gcm12', insecure: false },
-		{ name: 'aes256gcm96', insecure: false }
-	],
-	'AES_GCM_8': [
-		{ name: 'aes128gcm8', insecure: false },
-		{ name: 'aes128gcm64', insecure: false },
-		{ name: 'aes192gcm8', insecure: false },
-		{ name: 'aes192gcm64', insecure: false },
-		{ name: 'aes256gcm8', insecure: false },
-		{ name: 'aes256gcm64', insecure: false }
-	],
-	'AES_GCM_16': [
-		{ name: 'aes128gcm16', insecure: false },
-		{ name: 'aes128gcm128', insecure: false },
-		{ name: 'aes128gcm', insecure: false },
-		{ name: 'aes192gcm16', insecure: false },
-		{ name: 'aes192gcm128', insecure: false },
-		{ name: 'aes192gcm', insecure: false },
-		{ name: 'aes256gcm16', insecure: false },
-		{ name: 'aes256gcm128', insecure: false },
-		{ name: 'aes256gcm', insecure: false }
-	],
-	'CAMELLIA_CCM_8': [
-		{ name: 'camellia128ccm8', insecure: false },
-		{ name: 'camellia128ccm64', insecure: false },
-		{ name: 'camellia192ccm8', insecure: false },
-		{ name: 'camellia192ccm64', insecure: false },
-		{ name: 'camellia256ccm8', insecure: false },
-		{ name: 'camellia256ccm64', insecure: false }
-	],
-	'CAMELLIA_CCM_12': [
-		{ name: 'camellia128ccm12', insecure: false },
-		{ name: 'camellia128ccm96', insecure: false },
-		{ name: 'camellia192ccm12', insecure: false },
-		{ name: 'camellia192ccm96', insecure: false },
-		{ name: 'camellia256ccm12', insecure: false },
-		{ name: 'camellia256ccm96', insecure: false }
-	],
-	'CAMELLIA_CCM_16': [
-		{ name: 'camellia128ccm16', insecure: false },
-		{ name: 'camellia128ccm128', insecure: false },
-		{ name: 'camellia192ccm16', insecure: false },
-		{ name: 'camellia192ccm128', insecure: false },
-		{ name: 'camellia256ccm16', insecure: false },
-		{ name: 'camellia256ccm128', insecure: false }
-	],
-	'CHACHA20_POLY1305': [
-		{ name: 'chacha20poly1305', insecure: false },
-		{ name: 'chacha20poly1305compat', insecure: false }
-	]
-};
+function failure(message) {
+	return { ok: false, error: message };
+}
 
-const integrity_map = {
-	'AES_CMAC_96': [
-		{ name: 'aescmac', insecure: false }
-	],
-	'AES_XCBC_96': [
-		{ name: 'aesxcbc', insecure: false }
-	],
-	'CAMELLIA_XCBC_96': [
-		{ name: 'camelliaxcbc', insecure: false }
-	],
-	'HMAC_MD5_128': [
-		{ name: 'md5_128', insecure: true }
-	],
-	'HMAC_MD5_96': [
-		{ name: 'md5', insecure: true }
-	],
-	'HMAC_SHA1_160': [
-		{ name: 'sha1_160', insecure: true }
-	],
-	'HMAC_SHA1_96': [
-		{ name: 'sha', insecure: true },
-		{ name: 'sha1', insecure: true }
-	],
-	'HMAC_SHA2_256_128': [
-		{ name: 'sha256', insecure: false },
-		{ name: 'sha2_256', insecure: false }
-	],
-	'HMAC_SHA2_256_96': [
-		{ name: 'sha256_96', insecure: false },
-		{ name: 'sha2_256_96', insecure: false }
-	],
-	'HMAC_SHA2_384_192': [
-		{ name: 'sha384', insecure: false },
-		{ name: 'sha2_384', insecure: false }
-	],
-	'HMAC_SHA2_512_256': [
-		{ name: 'sha512', insecure: false },
-		{ name: 'sha2_512', insecure: false }
-	]
-};
+function run(cmd) {
+	try {
+		return trim(popen(cmd + ' 2>&1')?.read?.('all') ?? '');
+	}
+	catch (e) {
+		return '';
+	}
+}
 
-const prf_map = {
-	'PRF_AES128_CMAC': [
-		{ name: 'prfaescmac', insecure: false }
-	],
-	'PRF_AES128_XCBC': [
-		{ name: 'prfaesxcbc', insecure: false }
-	],
-	'PRF_CAMELLIA128_XCBC': [
-		{ name: 'prfcamelliaxcbc', insecure: false }
-	],
-	'PRF_HMAC_MD5': [
-		{ name: 'prfmd5', insecure: true }
-	],
-	'PRF_HMAC_SHA1': [
-		{ name: 'prfsha1', insecure: true }
-	],
-	'PRF_HMAC_SHA2_256': [
-		{ name: 'prfsha256', insecure: false }
-	],
-	'PRF_HMAC_SHA2_384': [
-		{ name: 'prfsha384', insecure: false }
-	],
-	'PRF_HMAC_SHA2_512': [
-		{ name: 'prfsha512', insecure: false }
-	]
-};
+function readText(path) {
+	try {
+		let s = stat(path);
+		if (s && s.type == 'file')
+			return readfile(path) ?? '';
+	}
+	catch (e) {
+	}
+	return null;
+}
 
-const ke_map = {
-	'CURVE_25519': [
-		{ name: 'curve25519', insecure: false },
-		{ name: 'x25519', insecure: false }
-	],
-	'CURVE_448': [
-		{ name: 'curve448', insecure: false },
-		{ name: 'x448', insecure: false }
-	],
-	'ECP_192': [
-		{ name: 'ecp192', insecure: true }
-	],
-	'ECP_224': [
-		{ name: 'ecp224', insecure: false }
-	],
-	'ECP_224_BP': [
-		{ name: 'ecp224bp', insecure: false }
-	],
-	'ECP_256': [
-		{ name: 'ecp256', insecure: false }
-	],
-	'ECP_256_BP': [
-		{ name: 'ecp256bp', insecure: false }
-	],
-	'ECP_384': [
-		{ name: 'ecp384', insecure: false }
-	],
-	'ECP_384_BP': [
-		{ name: 'ecp384bp', insecure: false }
-	],
-	'ECP_512_BP': [
-		{ name: 'ecp512bp', insecure: false }
-	],
-	'ECP_521': [
-		{ name: 'ecp521', insecure: false }
-	],
-	'GOST3410_256': [
-		{ name: 'gost256', insecure: false }
-	],
-	'GOST3410_512': [
-		{ name: 'gost512', insecure: false }
-	],
-	'KE_NONE': [
-		{ name: 'none', insecure: true },
-		{ name: 'modpnone', insecure: true }
-	],
-	'ML_KEM_1024': [
-		{ name: 'mlkem1024', insecure: false }
-	],
-	'ML_KEM_512': [
-		{ name: 'mlkem512', insecure: false }
-	],
-	'ML_KEM_768': [
-		{ name: 'mlkem768', insecure: false }
-	],
-	'MODP_1024': [
-		{ name: 'modp1024', insecure: true }
-	],
-	'MODP_1024_160': [
-		{ name: 'modp1024s160', insecure: true }
-	],
-	'MODP_1536': [
-		{ name: 'modp1536', insecure: true }
-	],
-	'MODP_2048': [
-		{ name: 'modp2048', insecure: false }
-	],
-	'MODP_2048_224': [
-		{ name: 'modp2048s224', insecure: true }
-	],
-	'MODP_2048_256': [
-		{ name: 'modp2048s256', insecure: true }
-	],
-	'MODP_3072': [
-		{ name: 'modp3072', insecure: false }
-	],
-	'MODP_4096': [
-		{ name: 'modp4096', insecure: false }
-	],
-	'MODP_6144': [
-		{ name: 'modp6144', insecure: false }
-	],
-	'MODP_768': [
-		{ name: 'modp768', insecure: true }
-	],
-	'MODP_8192': [
-		{ name: 'modp8192', insecure: false }
-	],
-	'MODP_NULL': [
-		{ name: 'modpnull', insecure: true }
-	]
-};
+function normalizeName(name) {
+	if (type(name) != 'string')
+		return null;
 
-const category_maps = {
-	encryption: encryption_map,
-	aead: aead_map,
-	integrity: integrity_map,
-	prf: prf_map,
-	ke: ke_map
-};
+	name = trim(name);
+	if (substr(name, length(name) - 5) == '.conf')
+		name = substr(name, 0, length(name) - 5);
+
+	if (!match(name, /^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/))
+		return null;
+
+	return name;
+}
+
+function profilePath(name) {
+	return sprintf('%s/%s.conf', PROFILE_DIR, name);
+}
+
+function ensureDirs() {
+	for (let dir in [ PROFILE_DIR, CONF_DIR, DISABLED_DIR ]) {
+		try {
+			let s = stat(dir);
+			if (!s)
+				mkdir(dir);
+		}
+		catch (e) {
+		}
+	}
+}
+
+function atomicWrite(path, content) {
+	let tmp = path + '.tmp';
+
+	try { unlink(tmp); } catch (e) {}
+	if (writefile(tmp, content) != length(content)) {
+		try { unlink(tmp); } catch (e) {}
+		return false;
+	}
+
+	try { chmod(tmp, 0o600); } catch (e) {}
+	if (!rename(tmp, path)) {
+		try { unlink(tmp); } catch (e) {}
+		return false;
+	}
+
+	return true;
+}
+
+function activeName() {
+	let name = readText(ACTIVE_MARKER);
+	return name ? trim(name) : '';
+}
+
+function listProfiles() {
+	ensureDirs();
+
+	let result = [];
+	let active = activeName();
+	let names = [];
+
+	try { names = lsdir(PROFILE_DIR) ?? []; } catch (e) { names = []; }
+
+	for (let name in names) {
+		if (substr(name, length(name) - 5) != '.conf')
+			continue;
+
+		let base = substr(name, 0, length(name) - 5);
+		let s = null;
+
+		try { s = stat(sprintf('%s/%s', PROFILE_DIR, name)); } catch (e) {}
+
+		push(result, {
+			name: base,
+			active: (base == active),
+			size: s?.size ?? 0,
+			mtime: s?.mtime ?? 0
+		});
+	}
+
+	return sort(result, (a, b) => a.name < b.name ? -1 : (a.name > b.name ? 1 : 0));
+}
+
+function listConflicts() {
+	let result = [];
+	let names = [];
+
+	try { names = lsdir(CONF_DIR) ?? []; } catch (e) { names = []; }
+
+	for (let name in names) {
+		if (substr(name, length(name) - 5) == '.conf' && name != 'active.conf')
+			push(result, name);
+	}
+
+	return sort(result);
+}
+
+function pluginList() {
+	let result = [];
+	let names = [];
+
+	try { names = lsdir('/usr/lib/ipsec/plugins') ?? []; } catch (e) { names = []; }
+
+	for (let name in names) {
+		if (!match(name, /^libstrongswan-.+\.so$/))
+			continue;
+
+		name = replace(name, /^libstrongswan-/, '');
+		name = replace(name, /\.so$/, '');
+		push(result, name);
+	}
+
+	return sort(result);
+}
+
+function parseSwanmon(cmd, errors) {
+	let out = run(cmd);
+	if (!out) {
+		push(errors, sprintf('%s: no output', cmd));
+		return null;
+	}
+
+	try {
+		let data = json(out);
+		if (data?.errors && length(data.errors) > 0) {
+			for (let err in data.errors)
+				push(errors, sprintf('%s: %s', cmd, err.message ?? 'unknown error'));
+		}
+		return data;
+	}
+	catch (e) {
+		push(errors, sprintf('%s: %s', cmd, e.message));
+		return null;
+	}
+}
+
+function serviceStatus() {
+	let out = trim(run('/etc/init.d/swanctl status'));
+	return out == 'running' ? 'running' : 'stopped';
+}
+
+function serviceAction(action) {
+	if (!match(action, /^(start|stop|restart|reload|status)$/))
+		return failure('Invalid service action');
+
+	let out = run(sprintf('/etc/init.d/swanctl %s', action));
+	return { ok: true, action: action, output: out, service: serviceStatus() };
+}
+
+function activateProfile(name) {
+	let content = readText(profilePath(name));
+	if (content == null)
+		return failure('Profile not found');
+	if (length(content) == 0)
+		return failure('Profile is empty');
+
+	ensureDirs();
+	if (!atomicWrite(ACTIVE_FILE, content))
+		return failure('Failed to activate profile');
+	if (!atomicWrite(ACTIVE_MARKER, name + '\n'))
+		return failure('Failed to write active profile marker');
+
+	let reload = serviceAction('reload');
+
+	return {
+		ok: true,
+		name: name,
+		service: serviceStatus(),
+		reload: reload?.output ?? '',
+		profiles: listProfiles(),
+		conflicts: listConflicts()
+	};
+}
 
 const methods = {
-	'list-algs': {
-		args: { type: 'type' },
-		call: function(req) {
-			const result = {
-				error: null,
-				data: null
+	status: {
+		call: function() {
+			let errors = [];
+			let hasSwanmon = stat('/usr/sbin/swanmon')?.type == 'file';
+			let version = null;
+			let stats = null;
+			let conns = null;
+			let sas = null;
+			let rawStats = '';
+
+			if (hasSwanmon) {
+				let v = parseSwanmon('/usr/sbin/swanmon version', errors);
+				let s = parseSwanmon('/usr/sbin/swanmon stats', errors);
+				let c = parseSwanmon('/usr/sbin/swanmon list-conns', errors);
+				let a = parseSwanmon('/usr/sbin/swanmon list-sas', errors);
+
+				version = v?.data ?? null;
+				stats = s?.data ?? null;
+				conns = c?.data ?? null;
+				sas = a?.data ?? null;
+			}
+			else {
+				rawStats = run('/usr/sbin/swanctl --stats');
+				if (!rawStats)
+					push(errors, 'swanmon is not installed and swanctl --stats failed');
+			}
+
+			let uciOut = run('uci -q show ipsec');
+			let uciConns = 0;
+			for (let line in split(uciOut, '\n'))
+				if (match(line, /=connection$/))
+					uciConns++;
+
+			return {
+				ok: true,
+				service: serviceStatus(),
+				profile: activeName(),
+				uci_connections: uciConns,
+				profiles: listProfiles(),
+				conflicts: listConflicts(),
+				plugins: pluginList(),
+				has_swanmon: hasSwanmon,
+				version: version,
+				stats: stats,
+				conns: conns,
+				sas: sas,
+				raw_stats: rawStats,
+				errors: errors
 			};
-			const cmd = '/usr/sbin/swanmon get-algorithms';
-			const categories = keys(category_maps);
-			let output;
-			let selected_categories = categories;
-			if (req && req.args && req.args.type)
-				selected_categories = [req.args.type];
+		}
+	},
 
-			try {
-				output = json(popen(cmd)?.read?.('all'));
-			}
-			catch (e) {
-				result.error = e.message;
-				return result;
-			}
+	profiles: {
+		call: function() {
+			return {
+				ok: true,
+				profile: activeName(),
+				profiles: listProfiles(),
+				conflicts: listConflicts()
+			};
+		}
+	},
 
-			if (length(output.errors) > 0)
-				result.error = output.errors[0].message;
+	read: {
+		args: { name: 'name' },
+		call: function(req) {
+			let name = normalizeName(req.args?.name);
+			if (!name)
+				return failure('Invalid profile name');
 
-			if (output.data) {
-				result.data = {};
+			let content = readText(profilePath(name));
+			if (content == null)
+				return failure('Profile not found');
 
-				for (let category in selected_categories) {
-					const category_map = category_maps[category];
-					const output_algorithms = output.data[category];
+			return { ok: true, name: name, content: content };
+		}
+	},
 
-					result.data[category] = [];
+	write: {
+		args: { name: 'name', content: 'content', activate: 'activate' },
+		call: function(req) {
+			let name = normalizeName(req.args?.name);
+			let content = req.args?.content;
 
-					for (let algorithm_name, algorithm_plugin in output_algorithms) {
-						const map_algorithm = category_map[algorithm_name] ?? [];
-						if (!map_algorithm)
-							continue;
+			if (!name)
+				return failure('Invalid profile name');
+			if (type(content) != 'string' || length(content) == 0)
+				return failure('Configuration is empty');
+			if (length(content) > MAX_CONTENT)
+				return failure('Configuration is too large');
 
-						for (let algorithm in map_algorithm) {
-							push(result.data[category], {
-								name: algorithm.name,
-								plugin: algorithm_plugin,
-								insecure: algorithm.insecure
-							});
-						}
-					}
-				}
-			}
+			ensureDirs();
+
+			let path = profilePath(name);
+			let old = readText(path);
+			if (old != null)
+				atomicWrite(path + '.bak', old);
+
+			if (!atomicWrite(path, content))
+				return failure('Failed to write profile');
+
+			let result = { ok: true, name: name, profiles: listProfiles() };
+
+			if (req.args?.activate == true || req.args?.activate == 1)
+				result.active = activateProfile(name);
 
 			return result;
 		}
 	},
-	'map-conns': {
-		call: function() {
-			const result = {
-				error: null,
-				data: null
+
+	delete: {
+		args: { name: 'name' },
+		call: function(req) {
+			let name = normalizeName(req.args?.name);
+			if (!name)
+				return failure('Invalid profile name');
+			if (name == activeName())
+				return failure('Cannot delete the active profile');
+
+			let path = profilePath(name);
+			if (readText(path) == null)
+				return failure('Profile not found');
+
+			try {
+				unlink(path);
+			}
+			catch (e) {
+				return failure('Failed to delete profile');
+			}
+
+			return { ok: true, profiles: listProfiles() };
+		}
+	},
+
+	activate: {
+		args: { name: 'name' },
+		call: function(req) {
+			let name = normalizeName(req.args?.name);
+			if (!name)
+				return failure('Invalid profile name');
+
+			return activateProfile(name);
+		}
+	},
+
+	service: {
+		args: { action: 'action' },
+		call: function(req) {
+			return serviceAction(req.args?.action);
+		}
+	},
+
+	logs: {
+		args: { lines: 'lines' },
+		call: function(req) {
+			let lines = int(req.args?.lines ?? 200);
+			if (isnan(lines))
+				lines = 200;
+			if (lines < 50)
+				lines = 50;
+			if (lines > 1000)
+				lines = 1000;
+
+			let logread = stat('/sbin/logread')?.type == 'file' ? '/sbin/logread' : 'logread';
+			let charon = run(sprintf('%s -e charon | tail -n %d', logread, lines));
+			let swanctl = run(sprintf('%s -e swanctl | tail -n %d', logread, lines));
+
+			return {
+				ok: true,
+				charon: charon,
+				swanctl: swanctl,
+				lines: lines
 			};
-			const conns_cmd = '/usr/sbin/swanmon list-conns';
-			const sas_cmd = '/usr/sbin/swanmon list-sas';
-			let conns_output;
-			let sas_output;
+		}
+	},
 
-			try {
-				conns_output = json(popen(conns_cmd)?.read?.('all'));
-			}
-			catch (e) {
-				result.error = e.message;
-				return result;
-			}
-			if (length(conns_output.errors) > 0)
-				result.error = conns_output.errors[0].message;
+	isolate: {
+		call: function() {
+			ensureDirs();
 
-			try {
-				sas_output = json(popen(sas_cmd)?.read?.('all'));
-			}
-			catch (e) {
-				result.error = e.message;
-				return result;
-			}
-			if (length(sas_output.errors) > 0)
-				result.error = sas_output.errors[0].message;
+			let moved = [];
+			let failed = [];
+			let names = [];
 
-			if (conns_output.data && sas_output.data) {
-				const saMap = {};
+			try { names = lsdir(CONF_DIR) ?? []; } catch (e) { names = []; }
 
-				for (let saObject in sas_output.data) {
-					const saName = keys(saObject)[0];
-					saMap[saName] = saObject[saName];
-				}
+			for (let name in names) {
+				if (substr(name, length(name) - 5) != '.conf' || name == 'active.conf')
+					continue;
 
-				result.data = map(conns_output.data, connObj => {
-					const connName = keys(connObj)[0];
-					const conn = connObj[connName];
+				let src = sprintf('%s/%s', CONF_DIR, name);
+				let dst = sprintf('%s/%s', DISABLED_DIR, name);
 
-					/* set name as property of connection */
-					conn.name = connName;
-
-					/* connection name and SA name are equal -> match using name */
-					if (exists(saMap, connName)) {
-						const sa = saMap[connName];
-						const childSas = sa["child-sas"];
-						const childSaMap = {};
-
-						/* set SA as property of connection */
-						conn.sa = sa;
-
-						for (let _, childSa in childSas)
-							childSaMap[childSa.name] = childSa;
-
-						for (let connChildName, child in conn.children) {
-							/* connection child name and SA child name are equal -> match using name */
-							if (exists(childSaMap, connChildName)) {
-								/* set SA child as property of connection child */
-								child.childSa = childSaMap[connChildName];
-							}
-						}
-					}
-
-					return conn;
-				});
+				if (rename(src, dst))
+					push(moved, name);
+				else
+					push(failed, name);
 			}
 
-			/*
-			 * Successful response format:
-			 *	{
-			 *		"error": null,
-			 *		"data": [{
-			 *			"name": "remote_1",
-			 *			... // data from swanctl --list-conns
-			 *			"sa": {
-			 *				... // data from swanctl --list-sas
-			 *			},
-			 *			"children": {
-			 *				"remote_child_1": {
-			 *					... // child data from swanctl --list-conns
-			 *					"childSa": {
-			 *						"name": "remote_child_1",
-			 *						... // child data from swanctl --list-sas
-			 *					}
-			 *				}
-			 *			}
-			 *		}]
-			 *	}
-			 */
-			return result;
+			return { ok: length(failed) == 0, moved: moved, failed: failed, conflicts: listConflicts() };
 		}
 	}
 };

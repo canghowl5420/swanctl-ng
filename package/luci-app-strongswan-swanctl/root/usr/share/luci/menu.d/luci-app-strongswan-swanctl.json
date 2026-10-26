@@ -4,7 +4,7 @@
 		"order": 90,
 		"action": {
 			"type": "alias",
-			"path": "admin/vpn/strongswan-swanctl/swanctl"
+			"path": "admin/vpn/strongswan-swanctl/overview"
 		},
 		"depends": {
 			"acl": [
@@ -12,41 +12,44 @@
 			]
 		}
 	},
-	"admin/vpn/strongswan-swanctl/swanctl": {
-		"title": "Connections",
+	"admin/vpn/strongswan-swanctl/overview": {
+		"title": "IPsec Status",
 		"order": 10,
 		"action": {
 			"type": "view",
-			"path": "strongswan-swanctl/swanctl"
+			"path": "strongswan-swanctl/overview"
 		}
 	},
-	"admin/vpn/strongswan-swanctl/general": {
-		"title": "General",
-		"order": 15,
-		"action": {
-			"type": "view",
-			"path": "strongswan-swanctl/general"
-		}
-	},
-	"admin/vpn/strongswan-swanctl/strongswan": {
-		"title": "Service",
+	"admin/vpn/strongswan-swanctl/configs": {
+		"title": "Configuration Files",
 		"order": 20,
 		"action": {
 			"type": "view",
-			"path": "strongswan-swanctl/strongswan"
+			"path": "strongswan-swanctl/configs"
 		}
 	},
-	"admin/status/strongswan": {
-		"title": "strongSwan IPsec",
-		"order": 90,
+	"admin/vpn/strongswan-swanctl/generate": {
+		"title": "Generate Configuration",
+		"order": 30,
 		"action": {
 			"type": "view",
-			"path": "strongswan-swanctl/status"
-		},
-		"depends": {
-			"acl": [
-				"luci-app-strongswan-swanctl"
-			]
+			"path": "strongswan-swanctl/generate"
+		}
+	},
+	"admin/vpn/strongswan-swanctl/editor": {
+		"title": "Editor",
+		"order": 40,
+		"action": {
+			"type": "view",
+			"path": "strongswan-swanctl/editor"
+		}
+	},
+	"admin/vpn/strongswan-swanctl/logs": {
+		"title": "Logs",
+		"order": 50,
+		"action": {
+			"type": "view",
+			"path": "strongswan-swanctl/logs"
 		}
 	}
 }

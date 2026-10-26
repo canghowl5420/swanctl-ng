@@ -1,51 +1,15 @@
 {
 	"luci-app-strongswan-swanctl": {
-		"description": "Grant access to luci-app-strongswan-swanctl",
+		"description": "Grant access to the strongSwan swanctl file manager",
 		"read": {
-			"file": {
-				"/etc/config/ipsec": [ "list" ],
-				"/etc/swanctl/x509": [ "list" ],
-				"/etc/swanctl/x509/*": [ "stat" ],
-				"/etc/swanctl/x509ca": [ "list" ],
-				"/etc/swanctl/x509ca/*": [ "stat" ],
-				"/etc/swanctl/private": [ "list" ],
-				"/etc/swanctl/private/*": [ "stat" ],
-				"/etc/swanctl/rsa": [ "list" ],
-				"/etc/swanctl/rsa/*": [ "stat" ],
-				"/etc/swanctl/ecdsa": [ "list" ],
-				"/etc/swanctl/ecdsa/*": [ "stat" ],
-				"/etc/swanctl/pkcs8": [ "list" ],
-				"/etc/swanctl/pkcs8/*": [ "stat" ],
-				"/etc/swanctl/pkcs12": [ "list" ],
-				"/etc/swanctl/pkcs12/*": [ "stat" ],
-				"/etc/swanctl.profile": [ "read" ],
-				"/var/swanctl/swanctl.conf": [ "read" ],
-				"/usr/sbin/swanmon version": [ "exec" ],
-				"/usr/sbin/swanmon stats": [ "exec" ],
-				"/usr/sbin/swanctl-profile-check *": [ "exec" ]
-			},
 			"ubus": {
-				"luci.swanctl": [ "list-algs", "map-conns" ]
-			},
-			"uci": [ "ipsec" ]
+				"luci.swanctl": [ "status", "profiles", "read", "logs" ]
+			}
 		},
 		"write": {
-			"cgi-io": [ "upload" ],
-			"file": {
-				"/etc/init.d/swanctl migrate *": [ "exec" ],
-				"/etc/swanctl/x509/*": [ "write" ],
-				"/etc/swanctl/x509ca/*": [ "write" ],
-				"/etc/swanctl/private/*": [ "write" ],
-				"/etc/swanctl/rsa/*": [ "write" ],
-				"/etc/swanctl/ecdsa/*": [ "write" ],
-				"/etc/swanctl/pkcs8/*": [ "write" ],
-				"/etc/swanctl/pkcs12/*": [ "write" ],
-				"/usr/sbin/swanctl --initiate --ike *": [ "exec" ],
-				"/usr/sbin/swanctl --initiate --child *": [ "exec" ],
-				"/usr/sbin/swanctl --terminate --ike *": [ "exec" ],
-				"/usr/sbin/swanctl --terminate --child *": [ "exec" ]
-			},
-			"uci": [ "ipsec" ]
+			"ubus": {
+				"luci.swanctl": [ "write", "delete", "activate", "service", "isolate" ]
+			}
 		}
 	}
 }

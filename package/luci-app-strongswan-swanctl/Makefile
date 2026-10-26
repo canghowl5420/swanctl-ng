@@ -20,7 +20,7 @@ define Package/luci-app-strongswan-swanctl
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
   TITLE:=LuCI support for strongSwan via swanctl
-  DEPENDS:=+luci-base +strongswan-swanctl
+  DEPENDS:=+luci-base +strongswan +strongswan-charon +strongswan-swanctl +strongswan-mod-vici +xfrm +luci-proto-xfrm
   PKGARCH:=all
   VERSION:=$(PKG_VERSION)-r$(PKG_RELEASE)
   URL:=https://github.com/immortalwrt/luci
@@ -47,11 +47,19 @@ define Package/luci-app-strongswan-swanctl/install
 	$(CP) $(PKG_BUILD_DIR)/htdocs/* $(1)/www/
 	$(INSTALL_DIR) $(1)/
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
+	$(INSTALL_DIR) $(1)/etc/swanctl/profiles
+	$(INSTALL_DIR) $(1)/etc/swanctl/conf.d
+	$(INSTALL_DIR) $(1)/etc/swanctl/conf.d.disabled
 endef
 
 define Package/luci-app-strongswan-swanctl/postinst
 #!/bin/sh
 [ -n "$${IPKG_INSTROOT}" ] || {
+	if [ -f /etc/swanctl/swanctl.conf ] &&
+	   ! grep -qE '^[[:space:]]*include[[:space:]]+conf\.d/\*\.conf' /etc/swanctl/swanctl.conf; then
+		printf '\ninclude conf.d/*.conf\n' >> /etc/swanctl/swanctl.conf
+	fi
+
 	rm -f /tmp/luci-indexcache.*
 	rm -rf /tmp/luci-modulecache/
 	/etc/init.d/rpcd reload 2>/dev/null
