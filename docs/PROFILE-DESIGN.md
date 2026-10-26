@@ -23,8 +23,14 @@ case. The repository therefore builds:
 
 The three profile packages carry a `preinst` guard: if another profile marker
 exists, the install aborts and tells the user to remove the current profile
-first. Mutual `CONFLICTS` metadata was avoided because it produces a Kconfig
-recursive-dependency error; the guard provides the same runtime protection.
+first. This is the real runtime protection on apk, whose package metadata does
+not expose the OpenWrt `CONFLICTS` field in `apk adbdump`.
+
+One-way `CONFLICTS` fields are kept for opkg/Kconfig users
+(`full` conflicts with `default` and `minimal`; `minimal` conflicts with
+`default`). Mutual conflicts were avoided because they produce a Kconfig
+recursive-dependency error. Do not rely on the metadata alone: switch profiles
+with `apk del` first, then install the new one.
 
 The UI core is installed as a dependency, so only one UI copy and one set of
 translation assets exists.
