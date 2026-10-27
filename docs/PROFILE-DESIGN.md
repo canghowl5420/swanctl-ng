@@ -94,13 +94,15 @@ minimal 的状态页降级为 `swanctl --stats` 文本。
 三个 profile 有 `preinst` 保护：安装时如果发现
 `/etc/swanctl.profile` 属于另一个 profile，直接退出并提示先卸载当前 profile。
 
-同时保留单向 `CONFLICTS` 供 opkg/Kconfig 使用：
+不使用 `CONFLICTS`。原因：
 
-- `full` 冲突 `default`、`minimal`；
-- `minimal` 冲突 `default`。
+- apk 的包元数据不展示 OpenWrt 的 `CONFLICTS` 字段，实际保护只能靠 `preinst`；
+- 单向 `CONFLICTS` 会让 Kconfig 把 `full` 挂到 `default` 下面，menuconfig
+  里看起来像“default 的子菜单”，不方便选择；
+- 双向 `CONFLICTS` 还会触发 Kconfig recursive dependency。
 
-双向 `CONFLICTS` 会导致 Kconfig recursive dependency，所以没有使用。
-apk 的包元数据不展示这个字段，实际运行保护以 `preinst` 为准。
+因此三个 profile 在 menuconfig 里是平级条目，安装时由 `preinst` 拒绝第二个
+profile。
 
 ## 切换 profile
 

@@ -108,7 +108,6 @@ define Package/luci-app-strongswan-swanctl-full
   SUBMENU:=3. Applications
   TITLE:=strongSwan swanctl (full profile)
   DEPENDS:=+luci-app-strongswan-swanctl +strongswan-full +swanmon
-  CONFLICTS:=luci-app-strongswan-swanctl-default luci-app-strongswan-swanctl-minimal
   PKGARCH:=all
   VERSION:=$(PKG_VERSION)-r$(PKG_RELEASE)
 endef
@@ -136,7 +135,6 @@ define Package/luci-app-strongswan-swanctl-minimal
 	+strongswan-mod-sha2 \
 	+strongswan-mod-kdf \
 	+strongswan-mod-gcm
-  CONFLICTS:=luci-app-strongswan-swanctl-default
   PKGARCH:=all
   VERSION:=$(PKG_VERSION)-r$(PKG_RELEASE)
 endef
