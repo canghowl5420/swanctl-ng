@@ -376,11 +376,13 @@ const methods = {
 			let logread = stat('/sbin/logread')?.type == 'file' ? '/sbin/logread' : 'logread';
 			let charon = run(sprintf('%s -e charon | tail -n %d', logread, lines));
 			let swanctl = run(sprintf('%s -e swanctl | tail -n %d', logread, lines));
+			let ipsec = run(sprintf('%s -e ipsec | tail -n %d', logread, lines));
 
 			return {
 				ok: true,
 				charon: charon,
 				swanctl: swanctl,
+				ipsec: ipsec,
 				lines: lines
 			};
 		}

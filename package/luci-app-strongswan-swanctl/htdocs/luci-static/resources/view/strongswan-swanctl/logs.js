@@ -23,6 +23,9 @@ return view.extend({
 		const swanctl = E('pre', {
 			'style': 'white-space:pre-wrap;max-height:30vh;overflow:auto;padding:1em;border:1px solid var(--border-color)'
 		}, [ result.swanctl || _('(no log entries)') ]);
+		const ipsec = E('pre', {
+			'style': 'white-space:pre-wrap;max-height:30vh;overflow:auto;padding:1em;border:1px solid var(--border-color)'
+		}, [ result.ipsec || _('(no log entries)') ]);
 		const lines = E('select', { 'class': 'cbi-input-select' }, [
 			E('option', { 'value': '100' }, [ '100' ]),
 			E('option', { 'value': '200', 'selected': 'selected' }, [ '200' ]),
@@ -35,6 +38,7 @@ return view.extend({
 			return api.logs(parseInt(lines.value)).then(api.unwrap).then(function(res) {
 				charon.textContent = res.charon || _('(no log entries)');
 				swanctl.textContent = res.swanctl || _('(no log entries)');
+				ipsec.textContent = res.ipsec || _('(no log entries)');
 			}).catch(api.notifyError);
 		}
 
@@ -44,6 +48,7 @@ return view.extend({
 			return api.logs(parseInt(lines.value)).then(api.unwrap).then(function(res) {
 				charon.textContent = res.charon || _('(no log entries)');
 				swanctl.textContent = res.swanctl || _('(no log entries)');
+				ipsec.textContent = res.ipsec || _('(no log entries)');
 			}).catch(function() {});
 		}, 5);
 
@@ -64,6 +69,10 @@ return view.extend({
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', _('swanctl')),
 				swanctl
+			]),
+			E('div', { 'class': 'cbi-section' }, [
+				E('h3', _('ipsec')),
+				ipsec
 			])
 		]);
 	},
