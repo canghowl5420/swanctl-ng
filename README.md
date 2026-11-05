@@ -1,4 +1,4 @@
-# immortalwrt-swanctl
+# swanctl-ng
 
 面向 **ImmortalWrt master（内核 6.18.x，aarch64）** 的
 `luci-app-strongswan-swanctl` 重写项目。
@@ -39,7 +39,7 @@
 ## 目录
 
 ```
-immortalwrt-swanctl/
+swanctl-ng/
 ├── package/luci-app-strongswan-swanctl/   # 实际构建的包
 │   ├── Makefile
 │   ├── htdocs/...                         # 五个页面 + api.js
@@ -92,7 +92,7 @@ cd immortalwrt-sdk-*
 把包链接进 SDK 并编译：
 
 ```sh
-ln -s /root/DeepSeek/immortalwrt-swanctl/package/luci-app-strongswan-swanctl \
+ln -s /root/DeepSeek/swanctl-ng/package/luci-app-strongswan-swanctl \
       package/luci-app-strongswan-swanctl
 make defconfig
 make package/luci-app-strongswan-swanctl/compile V=s -j$(nproc)
@@ -109,8 +109,8 @@ SDK_DIR=/path/to/sdk ./scripts/build.sh
 ## 安装（full）
 
 ```sh
-scp /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-1.0.0-r1.apk \
-    /root/DeepSeek/immortalwrt-swanctl/build/out/luci-app-strongswan-swanctl-full-1.0.0-r1.apk \
+scp /root/DeepSeek/swanctl-ng/build/out/luci-app-strongswan-swanctl-1.0.0-r1.apk \
+    /root/DeepSeek/swanctl-ng/build/out/luci-app-strongswan-swanctl-full-1.0.0-r1.apk \
     root@<router>:/tmp/
 
 ssh root@<router> '
