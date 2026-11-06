@@ -1557,3 +1557,366 @@ msgstr "重新检查"
 #: applications/luci-app-strongswan-swanctl/htdocs/luci-static/resources/view/strongswan-swanctl/strongswan.js:48
 msgid "unknown"
 msgstr "未知"
+
+msgid "%d plugin(s) found under /usr/lib/ipsec/plugins."
+msgstr "在 /usr/lib/ipsec/plugins 下找到 %d 个插件。"
+
+msgid "(no log entries)"
+msgstr "（无日志）"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Activate"
+msgstr "激活"
+
+msgid "Activate after upload"
+msgstr "上传后激活"
+
+msgid "Activated configuration \"%s\"."
+msgstr "已激活配置“%s”。"
+
+msgid "Active"
+msgstr "已启用"
+
+msgid "Active configuration"
+msgstr "当前配置"
+
+msgid "Active configuration: %s"
+msgstr "当前配置：%s"
+
+msgid "Auto refresh (5 s)"
+msgstr "自动刷新（5 秒）"
+
+msgid "CA certificate"
+msgstr "CA 证书"
+
+msgid "Certificate / public key"
+msgstr "证书 / 公钥"
+
+msgid "Child name"
+msgstr "Child 名称"
+
+msgid "Comma or space separated CIDRs."
+msgstr "CIDR 之间用逗号或空格分隔。"
+
+msgid "Configuration \"%s\" already exists. Overwrite it?"
+msgstr "配置“%s”已存在，是否覆盖？"
+
+msgid "Configuration \"%s\" saved and activated."
+msgstr "配置“%s”已保存并激活。"
+
+msgid "Configuration \"%s\" saved."
+msgstr "配置“%s”已保存。"
+
+msgid "Configuration Files"
+msgstr "配置文件"
+
+msgid "Configuration file"
+msgstr "配置文件"
+
+msgid "Configuration is empty."
+msgstr "配置内容为空。"
+
+msgid "Connection name"
+msgstr "连接名称"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete configuration \"%s\"?"
+msgstr "删除配置“%s”？"
+
+msgid "Deleted configuration \"%s\"."
+msgstr "已删除配置“%s”。"
+
+msgid "Disable other conf.d files"
+msgstr "禁用其它 conf.d 文件"
+
+msgid "Discard unsaved changes?"
+msgstr "放弃未保存的修改？"
+
+msgid "ESP proposals"
+msgstr "ESP 提案"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "Editing %s"
+msgstr "正在编辑 %s"
+
+msgid "Editor"
+msgstr "编辑器"
+
+msgid "Failed to read the file."
+msgstr "读取文件失败。"
+
+msgid "Generate Configuration"
+msgstr "生成配置"
+
+msgid "Generate a configuration"
+msgstr "生成配置"
+
+msgid "Generate a swanctl.conf snippet and save it as a named profile."
+msgstr "生成 swanctl.conf 片段并保存为命名配置。"
+
+msgid "Half-open: %s"
+msgstr "半开连接：%s"
+
+msgid "IKE SAs"
+msgstr "IKE SA"
+
+msgid "IKE and ESP proposals are required."
+msgstr "IKE 与 ESP 提案均为必填。"
+
+msgid "IKE proposals"
+msgstr "IKE 提案"
+
+msgid "IKE version"
+msgstr "IKE 版本"
+
+msgid "INACTIVE"
+msgstr "未激活"
+
+msgid "IP address or DNS name."
+msgstr "IP 地址或域名。"
+
+msgid "IPsec Status"
+msgstr "IPsec 状态"
+
+msgid "If they are not intended, move them to conf.d.disabled."
+msgstr "如果不需要它们，请移动到 conf.d.disabled。"
+
+msgid "Installed plugins"
+msgstr "已安装插件"
+
+msgid "Invalid child name."
+msgstr "Child 名称无效。"
+
+msgid "Invalid connection name."
+msgstr "连接名称无效。"
+
+msgid "Invalid profile name."
+msgstr "配置名称无效。"
+
+msgid "Lines: "
+msgstr "行数："
+
+msgid "Local ID"
+msgstr "本地 ID"
+
+msgid "Local address"
+msgstr "本地地址"
+
+msgid "Local addresses"
+msgstr "本地地址"
+
+msgid "Local and remote traffic selectors are required."
+msgstr "本地与远端流量选择器均为必填。"
+
+msgid "Local certificate"
+msgstr "本地证书"
+
+msgid "Local traffic selectors"
+msgstr "本地流量选择器"
+
+msgid "Logs"
+msgstr "日志"
+
+msgid "Modified"
+msgstr "修改时间"
+
+msgid "Move all other conf.d files to conf.d.disabled?"
+msgstr "是否把所有其它 conf.d 文件移动到 conf.d.disabled？"
+
+msgid "Moved %d file(s)."
+msgstr "已移动 %d 个文件。"
+
+msgid "Need a new configuration? "
+msgstr "需要新建配置？"
+
+msgid "No configuration profiles yet."
+msgstr "还没有配置档案。"
+
+msgid "No configuration profiles yet. Upload one or generate one."
+msgstr "还没有配置档案，可以上传或生成一个。"
+
+msgid "No connections are loaded."
+msgstr "没有已加载的连接。"
+
+msgid "No profile selected"
+msgstr "未选择配置"
+
+msgid "No profile selected."
+msgstr "未选择配置。"
+
+msgid "Only used for PSK authentication."
+msgstr "仅用于 PSK 认证。"
+
+msgid "Optional."
+msgstr "可选。"
+
+msgid "Optional; defaults to the remote address."
+msgstr "可选，默认使用远端地址。"
+
+msgid "Optional; leave empty for %any."
+msgstr "可选，留空表示 %any。"
+
+msgid "Other conf.d files are also loaded: %s"
+msgstr "同时加载的其它 conf.d 文件：%s"
+
+msgid "Please select a configuration file."
+msgstr "请选择配置文件。"
+
+msgid "Plugins"
+msgstr "插件"
+
+msgid "Pre-shared key"
+msgstr "预共享密钥"
+
+msgid "Pre-shared key is required."
+msgstr "预共享密钥为必填。"
+
+msgid "Preview"
+msgstr "预览"
+
+msgid "Profile name"
+msgstr "配置名称"
+
+msgid "Profile name (without .conf)"
+msgstr "配置名称（不含 .conf）"
+
+msgid "Profiles are stored in /etc/swanctl/profiles. The active profile is copied to /etc/swanctl/conf.d/active.conf."
+msgstr "配置档案存放在 /etc/swanctl/profiles，当前档案会复制到 /etc/swanctl/conf.d/active.conf。"
+
+msgid "Refresh now"
+msgstr "立即刷新"
+
+msgid "Refresh preview"
+msgstr "刷新预览"
+
+msgid "Relative to /etc/swanctl/x509."
+msgstr "相对于 /etc/swanctl/x509。"
+
+msgid "Relative to /etc/swanctl/x509ca."
+msgstr "相对于 /etc/swanctl/x509ca。"
+
+msgid "Reload configuration"
+msgstr "重载配置"
+
+msgid "Reload from disk"
+msgstr "从磁盘重新加载"
+
+msgid "Remote ID"
+msgstr "远端 ID"
+
+msgid "Remote address"
+msgstr "远端地址"
+
+msgid "Remote address is required."
+msgstr "远端地址为必填。"
+
+msgid "Remote addresses"
+msgstr "远端地址"
+
+msgid "Remote traffic selectors"
+msgstr "远端流量选择器"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Runtime logs for charon and swanctl, read with logread."
+msgstr "charon 与 swanctl 的运行时日志（logread）。"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Save and activate"
+msgstr "保存并激活"
+
+msgid "Saved under /etc/swanctl/profiles."
+msgstr "已保存到 /etc/swanctl/profiles。"
+
+msgid "Service action \"%s\" completed."
+msgstr "服务操作“%s”已完成。"
+
+msgid "Service: "
+msgstr "服务："
+
+msgid "Size"
+msgstr "大小"
+
+msgid "Start action"
+msgstr "启动操作"
+
+msgid "Status query warnings"
+msgstr "状态查询警告"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "The UCI ipsec configuration still contains %d connection(s). They are loaded in addition to the file-based profiles; keep only one source of truth."
+msgstr "UCI 的 ipsec 配置中仍有 %d 个连接，它们会与文件配置同时加载；建议只保留一种配置来源。"
+
+msgid "The active profile is copied to /etc/swanctl/conf.d/active.conf. Saving does not reload strongSwan until you activate or use the Reload button on the status page."
+msgstr "当前档案会复制到 /etc/swanctl/conf.d/active.conf。保存后需激活，或到状态页点“重载”才会重新加载 strongSwan。"
+
+msgid "The file is larger than 256 KiB."
+msgstr "文件大于 256 KiB。"
+
+msgid "The request failed."
+msgstr "请求失败。"
+
+msgid "The selected profile is copied to /etc/swanctl/conf.d/active.conf and the service is reloaded."
+msgstr "所选档案会复制到 /etc/swanctl/conf.d/active.conf 并重载服务。"
+
+msgid "These additional conf.d files are also loaded by strongSwan: %s"
+msgstr "strongSwan 还会加载这些额外的 conf.d 文件：%s"
+
+msgid "Traffic selectors and proposals"
+msgstr "流量选择器与提案"
+
+msgid "Upload"
+msgstr "上传"
+
+msgid "Upload configuration"
+msgstr "上传配置"
+
+msgid "Use the generator"
+msgstr "使用生成器"
+
+msgid "active"
+msgstr "启用"
+
+msgid "charon"
+msgstr "charon"
+
+msgid "ipsec"
+msgstr "ipsec"
+
+msgid "none"
+msgstr "无"
+
+msgid "optional"
+msgstr "可选"
+
+msgid "or upload one first."
+msgstr "或先上传一个。"
+
+msgid "strongSwan"
+msgstr "strongSwan"
+
+msgid "swanctl"
+msgstr "swanctl"
+
+msgid "swanctl --stats"
+msgstr "swanctl --stats"
+
+msgid "swanmon available"
+msgstr "swanmon 可用"
+
+msgid "text mode"
+msgstr "文本模式"

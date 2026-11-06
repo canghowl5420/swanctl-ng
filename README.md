@@ -148,3 +148,24 @@ cp /root/ipsec.bak /etc/config/ipsec
 - [x] aarch64 SDK 构建通过（构建期依赖使用 stub）
 - [ ] 真机安装与现有隧道回归
 - [ ] 更细的配置语法校验/证书管理
+
+
+## 汉化（i18n）
+
+前端字符串用 `_('...')` 包裹，翻译放在 `package/luci-app-strongswan-swanctl/po/zh_Hans/strongswan-swanctl.po`，
+编译进 `root/usr/lib/lua/luci/i18n/strongswan-swanctl.zh-cn.lmo`。
+
+改完 UI 后：
+
+```sh
+./scripts/i18n.sh missing     # 列出还没翻译的字符串
+# 把 msgid/msgstr 补进 po
+./scripts/i18n.sh build       # 重新生成 .lmo（需要 po2lmo）
+```
+
+`po2lmo` 来源：固件构建环境的 `staging_dir/host/bin/po2lmo`，或自行编译 luci-base 的
+`src/po2lmo.c`（脚本支持 `PO2LMO=/path/to/po2lmo`）。
+
+Makefile 里已加构建期自动生成（找不到 po2lmo 时退回仓库里预编译的 `.lmo`），所以提交前不跑 build
+也不会漏，只是改动要等下次编译才生效。
+

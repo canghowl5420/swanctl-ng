@@ -37,9 +37,18 @@ define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(CP) ./htdocs $(PKG_BUILD_DIR)/
 	$(CP) ./root $(PKG_BUILD_DIR)/
+	$(CP) ./po $(PKG_BUILD_DIR)/
 endef
 
+# 编译期把 po/zh_Hans 重新编成 .lmo；没有 po2lmo 时退回仓库里预编译的那份
 define Build/Compile
+	if [ -x "$(STAGING_DIR_HOST)/bin/po2lmo" ]; then \
+		$(STAGING_DIR_HOST)/bin/po2lmo \
+			$(PKG_BUILD_DIR)/po/zh_Hans/strongswan-swanctl.po \
+			$(PKG_BUILD_DIR)/root/usr/lib/lua/luci/i18n/strongswan-swanctl.zh-cn.lmo; \
+	else \
+		echo "po2lmo not found, keep prebuilt lmo"; \
+	fi
 endef
 
 define Package/luci-app-strongswan-swanctl/install
